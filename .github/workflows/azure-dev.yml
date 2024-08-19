@@ -74,6 +74,11 @@ jobs:
       run: |
         dotnet build
 
+    - name: Get json
+      shell: bash
+      run: |
+        cat ./src/AzureOpenAIProxy.ApiApp/openapi.json
+
     - name: OpenAPI linting
       uses: stoplightio/spectral-action@latest
       with:
