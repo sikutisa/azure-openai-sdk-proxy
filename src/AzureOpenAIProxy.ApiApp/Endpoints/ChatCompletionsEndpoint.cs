@@ -56,10 +56,10 @@ public static class ChatCompletionsEndpoint
         .Accepts<ChatCompletionOptions>(contentType: "application/json")
         .Produces<ChatCompletion>(statusCode: StatusCodes.Status200OK, contentType: "application/json")
         // TODO: Check both request/response payloads
-        .Produces(statusCode: StatusCodes.Status401Unauthorized)
-        .Produces<string>(statusCode: StatusCodes.Status500InternalServerError, contentType: "text/plain")
-        .WithTags("openai")
-        .WithName("GetChatCompletions")
+        // .Produces(statusCode: StatusCodes.Status401Unauthorized)
+        // .Produces<string>(statusCode: StatusCodes.Status500InternalServerError, contentType: "text/plain")
+        // .WithTags("openai")
+        // .WithName("GetChatCompletions")
         .WithOpenApi(operation =>
         {
             operation.Summary = "Get chat completions";
