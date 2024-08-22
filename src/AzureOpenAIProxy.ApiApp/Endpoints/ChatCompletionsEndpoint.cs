@@ -68,6 +68,8 @@ public static class ChatCompletionsEndpoint
             return operation;
         });
 
+        // passed
+
         return builder;
     }
 }
