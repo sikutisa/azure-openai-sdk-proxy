@@ -71,7 +71,7 @@ jobs:
       run: |
         API_VERSION=$(grep -oP 'public const string Version = "\K[^"]+' ./src/AzureOpenAIProxy.ApiApp/Constants.cs)
         dotnet swagger tofile --output ./openapi.json  ./src/AzureOpenAIProxy.ApiApp/bin/Debug/net8.0/AzureOpenAIProxy.ApiApp.dll $API_VERSION
-        spectral lint openapi.json
+        spectral lint -f "github-actions" openapi.json
 
     - name: Install playwright
       shell: pwsh
