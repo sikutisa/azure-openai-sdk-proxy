@@ -10,7 +10,7 @@ on:
 
 permissions:
   id-token: write
-  contents: read
+  contents: write
 
 jobs:
   build-test-deploy:
@@ -56,13 +56,7 @@ jobs:
         $appsettings.Azure.KeyVault.VaultUri = "${{ env.AZURE_KEYVAULT_URI }}"
         $appsettings.Azure.KeyVault.SecretName = "${{ env.AZURE_KEYVAULT_SECRET_NAME }}"
         $appsettings | ConvertTo-Json -Depth 100 | Set-Content -Path "./src/AzureOpenAIProxy.ApiApp/appsettings.json" -Encoding UTF8 -Force
-
-    - name: Install SwashBuckle Cli
-      shell: bash
-      run: |
-        dotnet new tool-manifest
-        dotnet tool install SwashBuckle.AspNetCore.Cli
-
+        
     - name: Install Spectral Cli
       shell: bash
       run: |
@@ -78,13 +72,31 @@ jobs:
       run: |
         dotnet build -c Release
 
-    - name: Lint OpenAPI doc
-      shell: bash
+    - name: Create openapi.json
+      shell: pwsh
       run: |
-        API_VERSION=$(grep -oP 'public const string Version = "\K[^"]+' ./src/AzureOpenAIProxy.ApiApp/Constants.cs)
-        dotnet swagger tofile --output ./openapi.json  ./src/AzureOpenAIProxy.ApiApp/bin/Debug/net8.0/AzureOpenAIProxy.ApiApp.dll $API_VERSION
+        $fileContent = Get-Content './src/AzureOpenAIProxy.ApiApp/Constants.cs'
+        $API_VERSION = [regex]::Match($fileContent, 'public const string Version = "([^"]+)"').Groups[1].Value
 
-        spectral lint -f json -f github-actions -F warn openapi.json
+        $PROCESS = Start-Process -FilePath "dotnet" -ArgumentList "run --project src/AzureOpenAIProxy.AppHost" -PassThru
+
+        Start-Sleep -Seconds 30
+
+        Remove-Item -Path "openapi.json" -Force
+
+        Invoke-WebRequest -Uri "https://localhost:7001/swagger/$API_VERSION/swagger.json" -OutFile "openapi.json"
+
+        $PROCESS.Kill()
+
+    - name: Lint OpenAPI doc
+      shell: pwsh
+      run: |
+        $LINT_RESULT = spectral lint -f json -F warn -D openapi.json
+
+        if( $LINT_RESULT.Count -ge 1) {
+          $LINT_RESULT
+          exit 1
+        }
 
     - name: Test solution
 
